@@ -36,6 +36,10 @@ dependencies:
   cupertino_icons: ^1.0.2
   webview_flutter: ^2.1.1
   simple_gesture_detector: ^0.2.0
+  webviewx: ^0.2.1
+  http: ^0.13.4
+  dio: ^4.0.1
+  syncfusion_flutter_pdfviewer: ^19.3.46-beta
 
 dev_dependencies:
   flutter_test:

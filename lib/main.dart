@@ -1,6 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:simple_gesture_detector/simple_gesture_detector.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(const MyApp());
@@ -31,20 +34,22 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
-  void _onVerticalSwipe(SwipeDirection direction) {
-    if (direction == SwipeDirection.up) {
-      print('Swiped up!');
-    } else {
-      print('Swiped down!');
-    }
-  }
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  String WebsiteTitle = "";
+  String pdfLink = "";
+  bool showPdf = false;
+    late WebViewController _controller;
+    final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
-    late WebViewController _controller;
 
     Future<bool> _onBack() async {
       bool goBack;
@@ -60,32 +65,148 @@ class MyHomePage extends StatelessWidget {
     }
 
     return WillPopScope(
-      onWillPop: ()async {
-        await _onBack();
-        if(await _controller.canGoBack()==true){
-        return false;
+      onWillPop: () async {
+        if (showPdf == true) {
+          setState(() {
+            showPdf = false;
+          });
+
+          return false;
         }
-        else{
-          return true;
-        }
+        var hhhh= await _onBack();
+        print(hhhh);
+       
+       return hhhh;
+       
       },
       child: SafeArea(
         child: Scaffold(
-        
-          floatingActionButton:FloatingActionButton(
-onPressed: (){
-  print("Reloading it");
-  _controller.reload();
-},
-child: Icon(Icons.refresh),
-          ),
-          body: WebView(
-            
-            javascriptMode: JavascriptMode.unrestricted,
-            initialUrl: "http://smartboard.replsolutions.com/",
-            onWebViewCreated: (WebViewController webViewController) {
-              _controller = webViewController;
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              print("Reloading it");
+              //   _controller.reload();
+
+              try {
+                var ssdf = await _controller.currentUrl();
+                print(ssdf);
+                var response = await Dio().get(ssdf!);
+                print(response);
+                response.headers.forEach((name, values) {
+                  if (name == "content-type") {
+                    if (values
+                            .where((element) => element == "application/pdf")
+                            .length !=
+                        0) {
+                      //it is pdf
+                      setState(() {
+                        showPdf = true;
+                      });
+
+                      print("it is pdf page");
+                    }
+                  }
+                  print(name);
+                  print(values.toString());
+                });
+              } catch (e) {
+                print(e);
+              }
+
+              // try {
+              //   var response = await Dio()
+              //       .get(ssdf.toString())
+              //       .then((value) => print(value.headers));
+              //   //print(response);
+
+              //   // Uri ss= Uri("dsdsd");
+
+              // } catch (e) {
+              //   print(e);
+              // }
             },
+            child: Icon(Icons.refresh),
+          ),
+          body: Stack(
+            children: [
+              WebView(
+                javascriptMode: JavascriptMode.unrestricted,
+                initialUrl: "https://sachinshrestha.w3spaces.com/",
+                onWebViewCreated: (WebViewController webViewController) {
+                  _controller = webViewController;
+                },
+                onPageStarted: (String rrr) async {
+                  print(rrr);
+                  try {
+                    var ssdf = rrr;
+                    print(ssdf);
+                    var response = await Dio().get(ssdf);
+                    // print(response);
+                    response.headers.forEach((name, values) {
+                      if (name == "content-type") {
+                        if (values
+                                .where(
+                                    (element) => element == "application/pdf")
+                                .length !=
+                            0) {
+                          //it is pdf
+                          setState(() {
+                            showPdf = true;
+                          });
+
+                          print("it is pdf page");
+                        }
+                      }
+                      //                  print(name);
+                      //                print(values.toString());
+                    });
+                  } catch (e) {
+                    print(e);
+                  }
+                },
+                onProgress: (int f) async {
+                  var fff = await _controller.getTitle();
+                  print("ssss678 : ${fff} ");
+                  try {
+                    var ssdf = await _controller.currentUrl();
+                    print(ssdf);
+                    var response = await Dio().get(ssdf!);
+                    // print(response);
+                    response.headers.forEach((name, values) {
+                      if (name == "content-type") {
+                        if (values
+                                .where(
+                                    (element) => element == "application/pdf")
+                                .length !=
+                            0) {
+                          //it is pdf
+                          setState(() {
+                            showPdf = true;
+                          });
+
+                          print("it is pdf page");
+                        }
+                      }
+                      //                  print(name);
+                      //                print(values.toString());
+                    });
+                  } catch (e) {
+                    print(e);
+                  }
+                },
+                onPageFinished: (String? f) async {
+                  // var fff = await   _controller.getTitle();
+                  // print("12345678 :  ${fff}");
+                },
+              ),
+              Visibility(
+                visible: showPdf,
+                child: SfPdfViewer.network(
+                  'http://smartboardadminen.replsolutions.com/Invoice/Print/22',
+                  key: _pdfViewerKey,
+                ),
+              ),
+              
+            ],
           ),
         ),
       ),
