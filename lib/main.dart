@@ -45,12 +45,12 @@ class _MyHomePageState extends State<MyHomePage> {
   String WebsiteTitle = "";
   String pdfLink = "";
   bool showPdf = false;
-    late WebViewController _controller;
-    final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  late WebViewController _controller;
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
+  String pdfUrl = "http://smartboardadminen.replsolutions.com/";
 
   @override
   Widget build(BuildContext context) {
-
     Future<bool> _onBack() async {
       bool goBack;
 
@@ -73,11 +73,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
           return false;
         }
-        var hhhh= await _onBack();
+        var hhhh = await _onBack();
         print(hhhh);
-       
-       return hhhh;
-       
+
+        return hhhh;
       },
       child: SafeArea(
         child: Scaffold(
@@ -130,38 +129,45 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               WebView(
                 javascriptMode: JavascriptMode.unrestricted,
-                initialUrl: "https://sachinshrestha.w3spaces.com/",
+                initialUrl: "http://smartboardadminen.replsolutions.com/",
                 onWebViewCreated: (WebViewController webViewController) {
                   _controller = webViewController;
                 },
                 onPageStarted: (String rrr) async {
                   print(rrr);
-                  try {
-                    var ssdf = rrr;
-                    print(ssdf);
-                    var response = await Dio().get(ssdf);
-                    // print(response);
-                    response.headers.forEach((name, values) {
-                      if (name == "content-type") {
-                        if (values
-                                .where(
-                                    (element) => element == "application/pdf")
-                                .length !=
-                            0) {
-                          //it is pdf
-                          setState(() {
-                            showPdf = true;
-                          });
-
-                          print("it is pdf page");
-                        }
-                      }
-                      //                  print(name);
-                      //                print(values.toString());
+                  if (rrr.contains("Print")) {
+                    setState(() {
+                      showPdf = true;
+                      pdfUrl = rrr;
                     });
-                  } catch (e) {
-                    print(e);
                   }
+                  // try {
+                  //   var ssdf = rrr;
+                  //   print(ssdf);
+
+                  //   var response = await Dio().get(ssdf);
+                  //   // print(response);
+                  //   response.headers.forEach((name, values) {
+                  //     if (name == "content-type") {
+                  //       if (values
+                  //               .where(
+                  //                   (element) => element == "application/pdf")
+                  //               .length !=
+                  //           0) {
+                  //         //it is pdf
+                  //         setState(() {
+                  //           showPdf = true;
+                  //         });
+
+                  //         print("it is pdf page");
+                  //       }
+                  //     }
+                  //     //                  print(name);
+                  //     //                print(values.toString());
+                  //   });
+                  // } catch (e) {
+                  //   print(e);
+                  // }
                 },
                 onProgress: (int f) async {
                   var fff = await _controller.getTitle();
@@ -201,11 +207,10 @@ class _MyHomePageState extends State<MyHomePage> {
               Visibility(
                 visible: showPdf,
                 child: SfPdfViewer.network(
-                  'http://smartboardadminen.replsolutions.com/Invoice/Print/22',
+                  "${pdfUrl}",
                   key: _pdfViewerKey,
                 ),
               ),
-              
             ],
           ),
         ),
