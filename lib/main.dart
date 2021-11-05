@@ -1,5 +1,11 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flowder/flowder.dart';
+import 'package:open_file/open_file.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,13 +20,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -80,25 +86,63 @@ class _MyHomePageState extends State<MyHomePage> {
                   if (rrr.contains("Print")) {
                     setState(() {
                       showPdf = true;
+
+//                      _controller.goBack();
                       pdfUrl = rrr;
+
+                      showModalBottomSheet<void>(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Container(
+                              height: 200,
+                              color: Colors.white,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    // const Text('Download Pdf'),
+                                    ElevatedButton(
+                                      child: const Text('Download'),
+                                      onPressed: () async {
+                                        var extstorage =
+                                            await getExternalStorageDirectory();
+                                          var finalPath="${extstorage!.path}/${new Random().nextInt(5014).toString()}.pdf";
+                                        DownloaderUtils options =
+                                            DownloaderUtils(
+                                          progressCallback: (current, total) {
+                                            final progress =
+                                                (current / total) * 100;
+                                            print('Downloading: $progress');
+                                          },
+                                          file: File(
+                                              finalPath),
+                                          progress: ProgressImplementation(),
+                                          onDone: () => print('COMPLETE'),
+                                          deleteOnCancel: true,
+                                        );
+
+                                        await Flowder.download(
+                                            'http://smartboardadminen.replsolutions.com/Invoice/Print/21',
+                                            options);
+                                         await OpenFile.open(finalPath);
+                                      },
+                                    ),
+                                    // ElevatedButton(
+                                    //   child: const Text('Close BottomSheet'),
+                                    //   onPressed: () => Navigator.pop(context),
+                                    // )
+                                  ],
+                                ),
+                              ),
+                            );
+                          });
+
+                      return null;
                     });
                   }
                 },
               ),
-              Visibility(
-                  visible: showPdf,
-                  child: Column(
-                    children: [
-                      Text("This is he Seconday Web view",style: TextStyle(   color: Colors.white, backgroundColor: Colors.blue[500]),),
-                      Expanded(
-                        child: WebView(
-                          javascriptMode: JavascriptMode.unrestricted,
-                          initialUrl:
-                              "https://docs.google.com/gview?url=${pdfUrl}",
-                        ),
-                      ),
-                    ],
-                  )),
             ],
           ),
         ),
