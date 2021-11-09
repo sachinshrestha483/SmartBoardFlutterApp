@@ -35,9 +35,14 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String WebsiteTitle = "";
   String pdfLink = "";
-  bool showPdf = false;
   late WebViewController _controller;
   String pdfUrl = "http://smartboardadminen.replsolutions.com/";
+  String logMessage = "";
+  void SetMessage(String message) {
+    setState(() {
+      logMessage = message;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,15 +58,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return WillPopScope(
       onWillPop: () async {
-        if (showPdf == true) {
-          setState(() {
-            showPdf = false;
-          });
+        SetMessage("Back Button Clicked");
 
-          return false;
-        }
         var hhhh = await _onBack();
         print(hhhh);
+        SetMessage("Can Go back:${hhhh}");
 
         return hhhh;
       },
@@ -73,75 +74,122 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             child: Icon(Icons.refresh),
           ),
-          body: Stack(
+          body: Column(
             children: [
-              WebView(
-                javascriptMode: JavascriptMode.unrestricted,
-                initialUrl: "http://smartboardadminen.replsolutions.com/",
-                onWebViewCreated: (WebViewController webViewController) {
-                  _controller = webViewController;
-                },
-                onPageStarted: (String rrr) async {
-                  print(rrr);
-                  if (rrr.contains("Print")) {
-                    setState(() {
-                      showPdf = true;
+              Expanded(flex: 1, child: Container(child: Text("${logMessage}"))),
+              Expanded(
+                flex: 10,
+                child: Container(
+                  child: WebView(
+                    javascriptMode: JavascriptMode.unrestricted,
+                    initialUrl: "http://smartboardadminen.replsolutions.com/",
+                    onWebViewCreated: (WebViewController webViewController) {
+                      _controller = webViewController;
+                    },
+                    onPageStarted: (String rrr) async {
+                      SetMessage("Entering On Page Started Method");
 
-//                      _controller.goBack();
-                      pdfUrl = rrr;
+                      print(rrr);
+                      SetMessage(
+                          "Inside OnPage Started Method: Checking If Link  Contains Pdf Content");
 
-                      showModalBottomSheet<void>(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Container(
-                              height: 200,
-                              color: Colors.white,
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: <Widget>[
-                                    // const Text('Download Pdf'),
-                                    ElevatedButton(
-                                      child: const Text('Download'),
-                                      onPressed: () async {
-                                        var extstorage =
-                                            await getExternalStorageDirectory();
-                                          var finalPath="${extstorage!.path}/${new Random().nextInt(5014).toString()}.pdf";
-                                        DownloaderUtils options =
-                                            DownloaderUtils(
-                                          progressCallback: (current, total) {
-                                            final progress =
-                                                (current / total) * 100;
-                                            print('Downloading: $progress');
+                      if (rrr.contains("Print")) {
+                        SetMessage(
+                            " Inside OnPage Started Method: Pdf Cotent Present There");
+
+                        setState(() {
+                          //                      _controller.goBack();
+                          pdfUrl = rrr;
+                          SetMessage(
+                              " Inside OnPage Started Method: Setting Link As Pdf Url For Download ${pdfUrl} ");
+                          SetMessage("  Opening  Modal Box:  ");
+
+                            showModalBottomSheet<void>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Container(
+                                  height: 200,
+                                  color: Colors.white,
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        // const Text('Download Pdf'),
+                                        ElevatedButton(
+                                          child: const Text('Download'),
+                                          onPressed: () async {
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked:  ");
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked: Getting extStorage Object   ");
+
+                                            var extstorage =
+                                                await getExternalStorageDirectory();
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked: extStorage -> ${extstorage}   ");
+
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked: Geerating Path To Save The Object    ");
+
+                                            var finalPath =
+                                                "${extstorage!.path}/${new Random().nextInt(5014).toString()}.pdf";
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked: Generated Path -> ${finalPath}    ");
+
+                                            DownloaderUtils options =
+                                                DownloaderUtils(
+                                              progressCallback:
+                                                  (current, total) {
+                                                final progress =
+                                                    (current / total) * 100;
+                                                SetMessage(
+                                                    "  DownLoad Pdf Button Clicked:   Download : ${progress} ");
+                                                print('Downloading: $progress');
+                                              },
+                                              file: File(finalPath),
+                                              progress:
+                                                  ProgressImplementation(),
+                                              onDone: () {
+                                                print('COMPLETE');
+                                                SetMessage(
+                                                    "  DownLoad Pdf Button Clicked:   Download  Completed ");
+                                              },
+                                              deleteOnCancel: true,
+                                            );
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked:    Starting Downloading Process   ");
+
+                                            await Flowder.download(
+                                                'http://smartboardadminen.replsolutions.com/Invoice/Print/21',
+                                                options);
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked:  Download Process Finished   ");
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked: Opening The File With Final Path $finalPath  ");
+
+                                            await OpenFile.open(finalPath);
+                                            SetMessage(
+                                                "  DownLoad Pdf Button Clicked:  File Opened  ");
                                           },
-                                          file: File(
-                                              finalPath),
-                                          progress: ProgressImplementation(),
-                                          onDone: () => print('COMPLETE'),
-                                          deleteOnCancel: true,
-                                        );
-
-                                        await Flowder.download(
-                                            'http://smartboardadminen.replsolutions.com/Invoice/Print/21',
-                                            options);
-                                         await OpenFile.open(finalPath);
-                                      },
+                                        ),
+                                        // ElevatedButton(
+                                        //   child: const Text('Close BottomSheet'),
+                                        //   onPressed: () => Navigator.pop(context),
+                                        // )
+                                      ],
                                     ),
-                                    // ElevatedButton(
-                                    //   child: const Text('Close BottomSheet'),
-                                    //   onPressed: () => Navigator.pop(context),
-                                    // )
-                                  ],
-                                ),
-                              ),
-                            );
-                          });
+                                  ),
+                                );
+                              });
 
-                      return null;
-                    });
-                  }
-                },
+                          return null;
+                        });
+                      }
+                    },
+                  ),
+                ),
               ),
             ],
           ),
