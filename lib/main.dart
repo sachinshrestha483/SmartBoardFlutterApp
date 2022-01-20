@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/utility.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -44,7 +45,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String WebsiteTitle = "";
-  String pdfLink = "https://www.americanexpress.com/content/dam/amex/us/staticassets/pdf/GCO/Test_PDF.pdf";
+  // String pdfLink = "https://www.americanexpress.com/content/dam/amex/us/staticassets/pdf/GCO/Test_PDF.pdf";
+  String pdfLink = Utility.GetDefaultPdfPage();
+  
   bool showPdf = false;
   late WebViewController _controller;
   void TogglePdfView() {
@@ -54,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
   void SetPdfUrl(String link){
       setState(() {
-        pdfLink="http://smartboardadmin.replsolutions.com/Invoice/Print/245";
+        pdfLink=link;
       });
   }
 
@@ -106,7 +109,8 @@ class _MyHomePageState extends State<MyHomePage> {
           body: Stack(
             children: [
               WebView(
-                initialUrl: 'http://smartboard.replsolutions.com/',
+               // initialUrl: 'http://smartboard.replsolutions.com/',
+               initialUrl: Utility.GetParentConsoleUrl(),
                 javascriptMode: JavascriptMode.unrestricted,
                 onWebViewCreated: (controller) {
                   _controller = controller;
