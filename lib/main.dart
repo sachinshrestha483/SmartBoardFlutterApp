@@ -1,18 +1,28 @@
-import 'dart:io';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flowder/flowder.dart';
-import 'package:open_file/open_file.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -34,20 +44,44 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String WebsiteTitle = "";
-  String pdfLink = "";
+  String pdfLink = "https://www.americanexpress.com/content/dam/amex/us/staticassets/pdf/GCO/Test_PDF.pdf";
+  bool showPdf = false;
   late WebViewController _controller;
-  String pdfUrl = "http://smartboardadminen.replsolutions.com/";
-  String logMessage = "";
-  void SetMessage(String message) {
+  void TogglePdfView() {
     setState(() {
-      logMessage = message;
+      showPdf = !showPdf;
     });
   }
+  void SetPdfUrl(String link){
+      setState(() {
+        pdfLink="http://smartboardadmin.replsolutions.com/Invoice/Print/245";
+      });
+  }
+
+  NavigationDecision _interceptNavigation(NavigationRequest request) {
+    print("Page Contains $request ");
+    print("Page Contains Navigation Url: ${request.url}");
+
+    if (request.url.contains("Print")) {
+      //  launch(request.url);
+      SetPdfUrl(request.url);
+      TogglePdfView();
+      return NavigationDecision.prevent;
+    }
+    return NavigationDecision.navigate;
+  }
+
+  final GlobalKey<SfPdfViewerState> _pdfViewerKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
     Future<bool> _onBack() async {
-      var value = await _controller.canGoBack(); // check webview can go back
+      var value = await _controller.canGoBack();
+      // check webview can go back
+      if (showPdf == true) {
+        TogglePdfView();
+        return false;
+      }
       if (value) {
         _controller.goBack(); // perform webview back operation
         return false;
@@ -55,16 +89,11 @@ class _MyHomePageState extends State<MyHomePage> {
         return true;
       }
     }
-
     return WillPopScope(
       onWillPop: () async {
-        SetMessage("Back Button Clicked");
-
-        var hhhh = await _onBack();
-        print(hhhh);
-        SetMessage("Can Go back:${hhhh}");
-
-        return hhhh;
+        var canGoBack = await _onBack();
+        print(canGoBack);
+        return canGoBack;
       },
       child: SafeArea(
         child: Scaffold(
@@ -74,121 +103,32 @@ class _MyHomePageState extends State<MyHomePage> {
             },
             child: Icon(Icons.refresh),
           ),
-          body: Column(
+          body: Stack(
             children: [
-              Expanded(flex: 1, child: Container(child: Text("${logMessage}"))),
-              Expanded(
-                flex: 10,
-                child: Container(
-                  child: WebView(
-                    javascriptMode: JavascriptMode.unrestricted,
-                    initialUrl: "http://smartboardadminen.replsolutions.com/",
-                    onWebViewCreated: (WebViewController webViewController) {
-                      _controller = webViewController;
-                    },
-                    onPageStarted: (String rrr) async {
-                      SetMessage("Entering On Page Started Method");
-
-                      print(rrr);
-                      SetMessage(
-                          "Inside OnPage Started Method: Checking If Link  Contains Pdf Content");
-
-                      if (rrr.contains("Print")) {
-                        SetMessage(
-                            " Inside OnPage Started Method: Pdf Cotent Present There");
-
-                        setState(() {
-                          //                      _controller.goBack();
-                          pdfUrl = rrr;
-                          SetMessage(
-                              " Inside OnPage Started Method: Setting Link As Pdf Url For Download ${pdfUrl} ");
-                          SetMessage("  Opening  Modal Box:  ");
-
-                            showModalBottomSheet<void>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Container(
-                                  height: 200,
-                                  color: Colors.white,
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        // const Text('Download Pdf'),
-                                        ElevatedButton(
-                                          child: const Text('Download'),
-                                          onPressed: () async {
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked:  ");
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked: Getting extStorage Object   ");
-
-                                            var extstorage =
-                                                await getExternalStorageDirectory();
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked: extStorage -> ${extstorage}   ");
-
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked: Geerating Path To Save The Object    ");
-
-                                            var finalPath =
-                                                "${extstorage!.path}/${new Random().nextInt(5014).toString()}.pdf";
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked: Generated Path -> ${finalPath}    ");
-
-                                            DownloaderUtils options =
-                                                DownloaderUtils(
-                                              progressCallback:
-                                                  (current, total) {
-                                                final progress =
-                                                    (current / total) * 100;
-                                                SetMessage(
-                                                    "  DownLoad Pdf Button Clicked:   Download : ${progress} ");
-                                                print('Downloading: $progress');
-                                              },
-                                              file: File(finalPath),
-                                              progress:
-                                                  ProgressImplementation(),
-                                              onDone: () {
-                                                print('COMPLETE');
-                                                SetMessage(
-                                                    "  DownLoad Pdf Button Clicked:   Download  Completed ");
-                                              },
-                                              deleteOnCancel: true,
-                                            );
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked:    Starting Downloading Process   ");
-
-                                            await Flowder.download(
-                                                'http://smartboardadminen.replsolutions.com/Invoice/Print/21',
-                                                options);
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked:  Download Process Finished   ");
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked: Opening The File With Final Path $finalPath  ");
-
-                                            await OpenFile.open(finalPath);
-                                            SetMessage(
-                                                "  DownLoad Pdf Button Clicked:  File Opened  ");
-                                          },
-                                        ),
-                                        // ElevatedButton(
-                                        //   child: const Text('Close BottomSheet'),
-                                        //   onPressed: () => Navigator.pop(context),
-                                        // )
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              });
-
-                          return null;
-                        });
-                      }
-                    },
-                  ),
+              WebView(
+                initialUrl: 'http://smartboard.replsolutions.com/',
+                javascriptMode: JavascriptMode.unrestricted,
+                onWebViewCreated: (controller) {
+                  _controller = controller;
+                },
+                navigationDelegate: this._interceptNavigation,
+                onWebResourceError: (Wedf) {
+                  print("Page Load Error");
+                },
+                // onPageStarted: (url) {
+                //   print("Page Contains ");
+                //   if (url.contains("Print")) {
+                //     print("Page Contains Pdf");
+                //     TogglePdfView();
+                //     _controller.goBack();
+                //   }
+                // },
+              ),
+              Visibility(
+                visible: showPdf,
+                child: SfPdfViewer.network(
+                  pdfLink,
+                  key: _pdfViewerKey,
                 ),
               ),
             ],
