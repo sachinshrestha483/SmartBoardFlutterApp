@@ -45,9 +45,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   String WebsiteTitle = "";
-  // String pdfLink = "https://www.americanexpress.com/content/dam/amex/us/staticassets/pdf/GCO/Test_PDF.pdf";
   String pdfLink = Utility.GetDefaultPdfPage();
-  
   bool showPdf = false;
   late WebViewController _controller;
   void TogglePdfView() {
@@ -66,7 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
     print("Page Contains Navigation Url: ${request.url}");
 
     if (request.url.contains("Print")) {
-      //  launch(request.url);
       SetPdfUrl(request.url);
       TogglePdfView();
       return NavigationDecision.prevent;
@@ -109,7 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
           body: Stack(
             children: [
               WebView(
-               // initialUrl: 'http://smartboard.replsolutions.com/',
                initialUrl: Utility.GetParentConsoleUrl(),
                 javascriptMode: JavascriptMode.unrestricted,
                 onWebViewCreated: (controller) {
@@ -119,14 +115,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 onWebResourceError: (Wedf) {
                   print("Page Load Error");
                 },
-                // onPageStarted: (url) {
-                //   print("Page Contains ");
-                //   if (url.contains("Print")) {
-                //     print("Page Contains Pdf");
-                //     TogglePdfView();
-                //     _controller.goBack();
-                //   }
-                // },
               ),
               Visibility(
                 visible: showPdf,
