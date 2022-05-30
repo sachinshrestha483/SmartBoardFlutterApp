@@ -1,7 +1,7 @@
 class Utility{
   static String GetParentConsoleUrl()
   {
-     return "https://hansol.replsolutions.com.np/";
+     return "http://hansol.replsolutions.com.np/";
   }
 
   static String GetDefaultPdfPage()
